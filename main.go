@@ -57,6 +57,16 @@ func main() {
 		GameStart:  connect,
 		Disconnect: disconnect,
 	})
+	command.Commands = append(command.Commands, command.Command{
+		Name:        "help",
+		Description: "The command that got you here...",
+		Execute: func(l command.Log, args []string, executor string) string {
+			for _, e := range command.Commands {
+				send("&a" + e.Name + "&8: &7" + e.Description)
+			}
+			return ""
+		},
+	})
 	pl = playerlist.New(client)
 	msgHandler = msg.New(client, player, pl, handler)
 	err := client.JoinServer("kaboom.fusselig.xyz:25565")
@@ -115,7 +125,7 @@ var handler = msg.EventsHandler{
 
 func onChat(rank string, username string, message string) {
 	fmt.Printf("%s %s > %s\n", rank, username, message)
-	if message[0] == '`' {
+	if len(message) > 0 && message[0] == '`' {
 		args := strings.Split(message[1:], " ")
 		cmd := args[0]
 		args = args[1:]
