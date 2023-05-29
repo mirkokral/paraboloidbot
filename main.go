@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"mirko/m/v2/command"
+	"mirko/command"
 	"strings"
 	"time"
 

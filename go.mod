@@ -1,4 +1,4 @@
-module mirko/m/v2
+module mirko
 
 go 1.20
 
