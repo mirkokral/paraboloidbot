@@ -68,33 +68,10 @@ func main() {
 			return ""
 		},
 	})
-	pl = playerlist.New(client)
-	msgHandler = msg.New(client, player, pl, handler)
-	err := client.JoinServer("kaboom.fusselig.xyz:25565")
-	wrld = world.NewWorld(client, player, world.EventsListener{
-		LoadChunk: func(pos level.ChunkPos) error {
-			return nil
-		},
-	})
-	queueChatHandler()
-
-	if err = client.HandleGame(); err == nil {
-		panic("HandleGame never return nil")
-	}
-	client.Events.AddGeneric(
-		bot.PacketHandler{
-			ID:       0x69,
-			Priority: 0,
-			F: func(p pk.Packet) error {
-				fmt.Println(p.ID)
-				return nil
-			},
-		},
-	)
 	client.Events.AddListener(
 		bot.PacketHandler{
 			ID:       0x38,
-			Priority: 0,
+			Priority: 2387489027890,
 			F: func(p pk.Packet) error {
 				fmt.Println("Position packet!!")
 				L.Info("&7Custom parser: &aParsing position packet...")
@@ -114,7 +91,20 @@ func main() {
 			},
 		},
 	)
+	wrld = world.NewWorld(client, player, world.EventsListener{
+		LoadChunk: func(pos level.ChunkPos) error {
+			return nil
+		},
+	})
+	pl = playerlist.New(client)
+	msgHandler = msg.New(client, player, pl, handler)
+	err := client.JoinServer("kaboom.fusselig.xyz:25565")
 
+	queueChatHandler()
+
+	if err = client.HandleGame(); err == nil {
+		panic("HandleGame never return nil")
+	}
 }
 
 var handler = msg.EventsHandler{
