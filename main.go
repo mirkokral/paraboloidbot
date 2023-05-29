@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"mirko/command"
+	"mirko/utils"
 	"strings"
 	"time"
 
@@ -60,7 +61,7 @@ func main() {
 	command.Commands = append(command.Commands, command.Command{
 		Name:        "help",
 		Description: "The command that got you here...",
-		Execute: func(l command.Log, args []string, executor string) string {
+		Execute: func(c command.Context) string {
 			for _, e := range command.Commands {
 				send("&a" + e.Name + "&8: &7" + e.Description)
 			}
@@ -80,12 +81,35 @@ func main() {
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
+	client.Events.AddGeneric(
+		bot.PacketHandler{
+			ID:       0x69,
+			Priority: 0,
+			F: func(p pk.Packet) error {
+				fmt.Println(p.ID)
+				return nil
+			},
+		},
+	)
 	client.Events.AddListener(
 		bot.PacketHandler{
-			ID:       packetid.ClientboundSystemChat,
-			Priority: 12,
+			ID:       0x38,
+			Priority: 0,
 			F: func(p pk.Packet) error {
-
+				fmt.Println("Position packet!!")
+				L.Info("&7Custom parser: &aParsing position packet...")
+				var (
+					x               pk.Double
+					y               pk.Double
+					z               pk.Double
+					yaw             pk.Float
+					pitch           pk.Float
+					flags           pk.Byte
+					teleportId      pk.VarInt
+					dismountViechle pk.Boolean
+				)
+				p.Scan(&x, &y, &z, &yaw, &pitch, &flags, &teleportId, &dismountViechle)
+				L.Info("&7Position updated: &a" + fmt.Sprintf("X: %f, Y: %f Z: %f", x, y, z))
 				return nil
 			},
 		},
@@ -122,6 +146,33 @@ var handler = msg.EventsHandler{
 		return nil
 	},
 }
+var relativeCorePos = utils.Vec3{
+	X: 0,
+	Y: 0,
+	Z: 0,
+}
+
+var corePos = utils.Vec3{
+	X: 0,
+	Y: 0,
+	Z: 0,
+}
+
+func core(command string) {
+	for relativeCorePos.X > 16 {
+		relativeCorePos.X -= 16
+		relativeCorePos.Z += 1
+	}
+	for relativeCorePos.Z > 16 {
+		relativeCorePos.Z -= 16
+		relativeCorePos.Y += 1
+	}
+	if relativeCorePos.Y > 16 {
+		relativeCorePos.X = 0
+		relativeCorePos.Y = 0
+		relativeCorePos.Z = 0
+	}
+}
 
 func onChat(rank string, username string, message string) {
 	fmt.Printf("%s %s > %s\n", rank, username, message)
@@ -132,7 +183,12 @@ func onChat(rank string, username string, message string) {
 		executed := false
 		for _, element := range command.Commands {
 			if element.Name == cmd {
-				send(element.Execute(L, args, username))
+				send(element.Execute(command.Context{
+					L:        L,
+					Args:     args,
+					Executor: username,
+					Core:     core,
+				}))
 				executed = true
 				break
 			}

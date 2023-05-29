@@ -8,20 +8,27 @@ type Log struct {
 	Err  func(message string)
 }
 
+type Context struct {
+	L        Log
+	Args     []string
+	Executor string
+	Core     func(command string)
+}
+
 type Command struct {
 	Name        string
 	Description string
-	Execute     func(l Log, args []string, executor string) string
+	Execute     func(c Context) string
 }
 
 var Commands = []Command{
 	{
 		Name:        "test",
 		Description: "command and core test",
-		Execute: func(l Log, args []string, executor string) string {
-			l.Info("Hello world!")
-			l.Info("&8Executed by: &a" + executor)
-			l.Info("&8Args: &7[&a\"" + strings.Join(args, "&r&a\"&7, &a\"") + "&r&a\"&7]")
+		Execute: func(c Context) string {
+			c.L.Info("Hello world!")
+			c.L.Info("&8Executed by: &a" + c.Executor)
+			c.L.Info("&8Args: &7[&a\"" + strings.Join(c.Args, "&r&a\"&7, &a\"") + "&r&a\"&7]")
 			return ""
 		},
 	},

@@ -1,7 +1,7 @@
 package utils
 
-type vec3 struct {
-	x int64
-	y int64
-	z int64
+type Vec3 struct {
+	X int64
+	Y int64
+	Z int64
 }
