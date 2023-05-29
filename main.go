@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"mirko/command"
+	"mirko/plugin"
+	"mirko/plugin/selfcare"
 	"mirko/utils"
 	"strings"
 	"time"
@@ -73,8 +75,6 @@ func main() {
 			ID:       0x38,
 			Priority: 2387489027890,
 			F: func(p pk.Packet) error {
-				fmt.Println("Position packet!!")
-				L.Info("&7Custom parser: &aParsing position packet...")
 				var (
 					x               pk.Double
 					y               pk.Double
@@ -91,6 +91,16 @@ func main() {
 			},
 		},
 	)
+	client.Events.AddGeneric(
+		bot.PacketHandler{
+			ID:       0x69420,
+			Priority: 2387489027890,
+			F: func(p pk.Packet) error {
+				selfcare.OnPacket(p)
+				return nil
+			},
+		},
+	)
 	wrld = world.NewWorld(client, player, world.EventsListener{
 		LoadChunk: func(pos level.ChunkPos) error {
 			return nil
@@ -98,6 +108,7 @@ func main() {
 	})
 	pl = playerlist.New(client)
 	msgHandler = msg.New(client, player, pl, handler)
+
 	err := client.JoinServer("kaboom.fusselig.xyz:25565")
 
 	queueChatHandler()
@@ -115,6 +126,7 @@ var handler = msg.EventsHandler{
 		if msg.Translate == "[%s] %s \u203a %s" {
 			onChat("["+msg.With[0].ClearString()+"]", msg.With[1].ClearString(), msg.With[2].ClearString())
 		}
+		selfcare.OnSystemChat(msg)
 		return nil
 	},
 	DisguisedChat: func(msg chat.Message) error {
@@ -162,6 +174,11 @@ func core(command string) {
 		relativeCorePos.Y = 0
 		relativeCorePos.Z = 0
 	}
+	client.Conn.WritePacket(
+		pk.Marshal(
+			packetid.ServerboundSetCommandBlock,
+		),
+	)
 }
 
 func onChat(rank string, username string, message string) {
@@ -174,10 +191,13 @@ func onChat(rank string, username string, message string) {
 		for _, element := range command.Commands {
 			if element.Name == cmd {
 				send(element.Execute(command.Context{
-					L:        L,
-					Args:     args,
-					Executor: username,
-					Core:     core,
+					L:              L,
+					Args:           args,
+					Executor:       username,
+					ExecutorPrefix: rank,
+					Core:           core,
+					Chat:           send,
+					Client:         *client,
 				}))
 				executed = true
 				break
@@ -240,6 +260,13 @@ func connect() error {
 		send("&aconnected to target server")
 	}
 	send("&7prefix is &c`")
+	selfcare.Inject(plugin.InjectHandler{
+		Core:   core,
+		Chat:   send,
+		Client: *client,
+		L:      L,
+		PL:     *pl,
+	})
 	return nil
 }
 func disconnect(reason chat.Message) error {
