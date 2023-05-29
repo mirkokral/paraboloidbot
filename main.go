@@ -29,7 +29,7 @@ var player *basic.Player
 var pl *playerlist.PlayerList
 var cqtick *time.Ticker
 var wrld *world.World
-var chatqueue = []string{}
+var chatqueue = []string{"1"}
 var connected = false
 var disconnectedAtleastOnce = false
 
@@ -109,9 +109,8 @@ func main() {
 	pl = playerlist.New(client)
 	msgHandler = msg.New(client, player, pl, handler)
 
-	err := client.JoinServer("kaboom.fusselig.xyz:25565")
-
 	queueChatHandler()
+	err := client.JoinServer("kaboom.fusselig.xyz:25565")
 
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
@@ -220,11 +219,10 @@ func queueChatHandler() {
 					if len(chatqueue) > 0 {
 						x := chatqueue[0]
 						chatqueue = chatqueue[1:]
-
-						if x[0] == '/' {
-							var salt int64
-							if err := binary.Read(rand.Reader, binary.BigEndian, &salt); err != nil {
-							} else {
+						var salt int64
+						if err := binary.Read(rand.Reader, binary.BigEndian, &salt); err != nil {
+						} else {
+							if x[0] == '/' {
 
 								client.Conn.WritePacket(pk.Marshal(
 									packetid.ServerboundChatCommand,
@@ -236,9 +234,19 @@ func queueChatHandler() {
 										Acknowledged: pk.NewFixedBitSet(20),
 									},
 								))
+
+							} else {
+								client.Conn.WritePacket(pk.Marshal(
+									packetid.ServerboundChat,
+									pk.String(x),
+									pk.Long(time.Now().UnixMilli()),
+									pk.Long(salt),
+									pk.Boolean(false),
+									sign.HistoryUpdate{
+										Acknowledged: pk.NewFixedBitSet(20),
+									},
+								))
 							}
-						} else {
-							msgHandler.SendMessage(x)
 						}
 					}
 				}
@@ -252,6 +260,9 @@ func queueChatHandler() {
 
 func connect() error {
 	connected = true
+	if connected {
+		fmt.Println("connected")
+	}
 	send("/nick &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d")
 	send("/rank &8|")
 	if disconnectedAtleastOnce {
