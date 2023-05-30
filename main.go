@@ -124,7 +124,7 @@ func main() {
 
 	queueChatHandler()
 	err := client.JoinServer("kaboom.fusselig.xyz:25565")
-
+	println(err)
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
@@ -284,9 +284,9 @@ func connect() error {
 	send("/nick &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d")
 	send("/rank &8|")
 	if disconnectedAtleastOnce {
-		L.Warn("reconnected to target server")
+		send("&ereconnected to target server")
 	} else {
-		L.Info("connected to target server")
+		send("&econnected to target server")
 	}
 	send("&7prefix is &c`")
 	selfcare.Inject(plugin.InjectHandler{
@@ -303,6 +303,7 @@ func disconnect(reason chat.Message) error {
 	disconnectedAtleastOnce = true
 	fmt.Println("Disconnected: " + reason.String())
 	err := client.JoinServer("kaboom.fusselig.xyz:25565")
+	println(err)
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
