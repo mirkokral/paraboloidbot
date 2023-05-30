@@ -29,7 +29,7 @@ var player *basic.Player
 var pl *playerlist.PlayerList
 var cqtick *time.Ticker
 var wrld *world.World
-var chatqueue = []string{"1"}
+var chatqueue = []string{}
 var connected = false
 var disconnectedAtleastOnce = false
 
@@ -284,9 +284,9 @@ func connect() error {
 	send("/nick &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d")
 	send("/rank &8|")
 	if disconnectedAtleastOnce {
-		send("&ereconnected to target server")
+		L.Warn("reconnected to target server")
 	} else {
-		send("&aconnected to target server")
+		L.Info("connected to target server")
 	}
 	send("&7prefix is &c`")
 	selfcare.Inject(plugin.InjectHandler{
