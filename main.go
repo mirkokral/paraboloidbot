@@ -35,13 +35,16 @@ var disconnectedAtleastOnce = false
 
 var L = command.Log{
 	Info: func(message string) {
-		send("&8[&binfo&8] - &b" + message)
+		// bcraw for now
+		core("bcraw &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d&8 \u203a [&binfo&8] - &b" + message)
 	},
 	Warn: func(message string) {
-		send("&8[&6warn&8] - &e" + message)
+		// bcraw for now
+		core("bcraw &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d&8 \u203a [&6warn&8] - &e" + message)
 	},
 	Err: func(message string) {
-		send("&8[&cerror&8] - &c" + message)
+		// bcraw for now
+		core("bcraw &#5f5f5fp&#5b5b5ba&#565656r&#525252a&#4e4e4eb&#494949o&#454545l&#414141o&#3c3c3ci&#383838d&8 \u203a [&cerror&8] - &c" + message)
 	},
 }
 

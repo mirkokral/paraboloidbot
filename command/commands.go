@@ -38,6 +38,7 @@ var Commands = []Command{
 			c.L.Info("&8Executed by: &a" + c.Executor)
 			c.L.Info("&8Prefix of executor: &a" + c.ExecutorPrefix)
 			c.L.Info("&8Args: &7[&a\"" + strings.Join(c.Args, "&r&a\"&7, &a\"") + "&r&a\"&7]")
+			c.Core("say gex")
 			return ""
 		},
 	},
