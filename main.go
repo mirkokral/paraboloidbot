@@ -84,7 +84,7 @@ func main() {
 			for i, e := range command.Commands {
 				s = s.Append(chat.Text(e.Name).SetColor("green"), chat.Text(": ").SetColor("dark_gray"), chat.Text(e.Description).SetColor("gray"))
 				if i < len(command.Commands)-1 {
-					s = s.Append()
+					s = s.Append(chat.Text("\n"))
 				}
 			}
 			tellraw(s)
@@ -244,7 +244,6 @@ func onChat(rank string, username string, message string) {
 
 func queueChatHandler() {
 	ticker := time.NewTicker(200 * time.Millisecond)
-	ticker2 := time.NewTicker(10 * time.Millisecond)
 	quit := make(chan struct{})
 	go func() {
 		for {
@@ -287,20 +286,6 @@ func queueChatHandler() {
 				}
 			case <-quit:
 				ticker.Stop()
-				return
-			}
-		}
-	}()
-	go func() {
-		for {
-			select {
-			case <-ticker2.C:
-				if connected {
-					core("title @a clear")
-					core("title @a actionbar \"\"")
-				}
-			case <-quit:
-				ticker2.Stop()
 				return
 			}
 		}
