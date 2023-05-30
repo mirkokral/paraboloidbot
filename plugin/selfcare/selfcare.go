@@ -2,6 +2,7 @@ package selfcare
 
 import (
 	"mirko/plugin"
+	"time"
 
 	"github.com/Tnze/go-mc/chat"
 	"github.com/Tnze/go-mc/data/packetid"
@@ -9,13 +10,39 @@ import (
 )
 
 var p plugin.InjectHandler
-var Skin string
-var OP bool
+var Skin string = "pb-1"
+var OP bool = true
 var CurrentGM Gamemode = Creative
+var e = false
+
+func Start() {
+
+}
 
 func Inject(h plugin.InjectHandler) {
 	p = h
 	skinChange(p.Client.Name)
+	if !e {
+		ticker := time.NewTicker(200 * time.Millisecond)
+		quit := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					if !OP {
+						h.Chat("/op @s[type=player]")
+					}
+					if CurrentGM != Creative {
+						h.Chat("/gamemode creative")
+					}
+				case <-quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+	}
+	e = true
 }
 
 func OnPacket(pk packet.Packet) {
@@ -27,19 +54,14 @@ func OnPacket(pk packet.Packet) {
 		pk.Scan(&entityId, &status)
 		switch status {
 		case 24:
-			p.L.Info("&7OP Change: &cDeOP")
 			OP = false
 		case 25:
-			p.L.Info("&7OP Change: &cDeOP")
 			OP = false
 		case 26:
-			p.L.Info("&7OP Change: &cDeOP")
 			OP = false
 		case 27:
-			p.L.Info("&7OP Change: &cDeOP")
 			OP = false
 		case 28:
-			p.L.Info("&7OP Change: &aOP")
 			OP = true
 		}
 	}
@@ -52,16 +74,12 @@ func OnPacket(pk packet.Packet) {
 		if event == 3 {
 			switch value {
 			case 0:
-				p.L.Info("&7Bot's gamemode: &cSurvival")
 				CurrentGM = Survival
 			case 1:
-				p.L.Info("&7Bot's gamemode: &aCreative")
 				CurrentGM = Creative
 			case 2:
-				p.L.Info("&7Bot's gamemode: &eAdventure")
 				CurrentGM = Adventure
 			case 3:
-				p.L.Info("&7Bot's gamemode: &dSpectator")
 				CurrentGM = Spectator
 			}
 		}

@@ -55,6 +55,15 @@ func send(msg string) {
 	chatqueue = append(chatqueue, msg)
 }
 
+func tellraw(message chat.Message) {
+	s, e := message.MarshalJSON()
+	if e != nil {
+		L.Err("Error while turning chat.Message into JSON: " + e.Error())
+		return
+	}
+	core("tellraw @a " + string(s))
+}
+
 func refillCore() {
 	send(fmt.Sprintf("/fill %d %d %d %d %d %d command_block", corePos.X, corePos.Y, corePos.Z, corePos.X+16, corePos.Y+16, corePos.Z+16))
 }
@@ -70,11 +79,16 @@ func main() {
 	command.Commands = append(command.Commands, command.Command{
 		Name:        "help",
 		Description: "The command that got you here...",
-		Execute: func(c command.Context) string {
-			for _, e := range command.Commands {
-				send("&a" + e.Name + "&8: &7" + e.Description)
+		Execute: func(c command.Context) *chat.Message {
+			s := chat.Text("")
+			for i, e := range command.Commands {
+				s = s.Append(chat.Text(e.Name).SetColor("green"), chat.Text(": ").SetColor("dark_gray"), chat.Text(e.Description).SetColor("gray"))
+				if i < len(command.Commands)-1 {
+					s = s.Append()
+				}
 			}
-			return ""
+			tellraw(s)
+			return nil
 		},
 	})
 	client.Events.AddListener(
@@ -128,6 +142,7 @@ func main() {
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
+	selfcare.Start()
 }
 
 var handler = msg.EventsHandler{
@@ -207,7 +222,7 @@ func onChat(rank string, username string, message string) {
 		executed := false
 		for _, element := range command.Commands {
 			if element.Name == cmd {
-				send(element.Execute(command.Context{
+				element.Execute(command.Context{
 					L:              L,
 					Args:           args,
 					Executor:       username,
@@ -215,7 +230,8 @@ func onChat(rank string, username string, message string) {
 					Core:           core,
 					Chat:           send,
 					Client:         *client,
-				}))
+					Tellraw:        tellraw,
+				})
 				executed = true
 				break
 			}
@@ -228,6 +244,7 @@ func onChat(rank string, username string, message string) {
 
 func queueChatHandler() {
 	ticker := time.NewTicker(200 * time.Millisecond)
+	ticker2 := time.NewTicker(10 * time.Millisecond)
 	quit := make(chan struct{})
 	go func() {
 		for {
@@ -274,6 +291,20 @@ func queueChatHandler() {
 			}
 		}
 	}()
+	go func() {
+		for {
+			select {
+			case <-ticker2.C:
+				if connected {
+					core("title @a clear")
+					core("title @a actionbar \"\"")
+				}
+			case <-quit:
+				ticker2.Stop()
+				return
+			}
+		}
+	}()
 }
 
 func connect() error {
@@ -290,11 +321,12 @@ func connect() error {
 	}
 	send("&7prefix is &c`")
 	selfcare.Inject(plugin.InjectHandler{
-		Core:   core,
-		Chat:   send,
-		Client: *client,
-		L:      L,
-		PL:     *pl,
+		Core:    core,
+		Chat:    send,
+		Client:  *client,
+		L:       L,
+		PL:      *pl,
+		Tellraw: tellraw,
 	})
 	return nil
 }
