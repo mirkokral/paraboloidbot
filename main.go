@@ -52,6 +52,10 @@ func send(msg string) {
 	chatqueue = append(chatqueue, msg)
 }
 
+func refillCore() {
+	send(fmt.Sprintf("/fill %d %d %d %d %d %d command_block", corePos.X, corePos.Y, corePos.Z, corePos.X+16, corePos.Y+16, corePos.Z+16))
+}
+
 func main() {
 
 	fmt.Println("parabloid v0.1")
@@ -87,6 +91,12 @@ func main() {
 				)
 				p.Scan(&x, &y, &z, &yaw, &pitch, &flags, &teleportId, &dismountViechle)
 				L.Info("&7Position updated: &a" + fmt.Sprintf("X: %f, Y: %f Z: %f", x, y, z))
+				corePos = utils.Vec3{
+					X: int64(x),
+					Y: 255,
+					Z: int64(z),
+				}
+				refillCore()
 				return nil
 			},
 		},
@@ -176,8 +186,13 @@ func core(command string) {
 	client.Conn.WritePacket(
 		pk.Marshal(
 			packetid.ServerboundSetCommandBlock,
+			pk.Long((((relativeCorePos.X+corePos.X)&0x3FFFFFF)<<38)|(((relativeCorePos.Z+corePos.Z)&0x3FFFFFF)<<12)|((relativeCorePos.Y+corePos.Y)&0xFFF)),
+			pk.String(command),
+			pk.VarInt(1),
+			pk.Byte(0x04),
 		),
 	)
+	relativeCorePos.X++
 }
 
 func onChat(rank string, username string, message string) {

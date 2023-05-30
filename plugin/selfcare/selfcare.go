@@ -73,9 +73,10 @@ func OnSystemChat(msg chat.Message) {
 	if clear == "Successfully removed your skin" {
 		skinChange(p.Client.Name)
 	}
-	if len(clear) > 30 && clear[:30] == "Successfully set your skin to " {
+	if len(clear) > len("Successfully set your skin to ") && clear[:30] == "Successfully set your skin to " {
 		skinChange(clear[30:][:len(clear)-32])
 	}
+
 }
 
 func skinChange(newSkin string) {
