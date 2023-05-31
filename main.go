@@ -65,7 +65,7 @@ func tellraw(message chat.Message) {
 }
 
 func refillCore() {
-	send(fmt.Sprintf("/fill %d %d %d %d %d %d command_block", corePos.X, corePos.Y, corePos.Z, corePos.X+16, corePos.Y+16, corePos.Z+16))
+	send(fmt.Sprintf("/fill %d %d %d %d %d %d command_block{CustomName: '\"chuba core\"'} destroy", corePos.X, corePos.Y, corePos.Z, corePos.X+16, corePos.Y+16, corePos.Z+16))
 }
 
 func main() {
