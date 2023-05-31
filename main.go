@@ -107,7 +107,6 @@ func main() {
 					dismountViechle pk.Boolean
 				)
 				p.Scan(&x, &y, &z, &yaw, &pitch, &flags, &teleportId, &dismountViechle)
-				L.Info("&7Position updated: &a" + fmt.Sprintf("X: %f, Y: %f Z: %f", x, y, z))
 				corePos = utils.Vec3{
 					X: int64(x),
 					Y: 255,
@@ -319,6 +318,7 @@ func disconnect(reason chat.Message) error {
 	connected = false
 	disconnectedAtleastOnce = true
 	fmt.Println("Disconnected: " + reason.String())
+	time.Sleep(5 * time.Second)
 	err := client.JoinServer("kaboom.fusselig.xyz:25565")
 	println(err)
 	if err = client.HandleGame(); err == nil {

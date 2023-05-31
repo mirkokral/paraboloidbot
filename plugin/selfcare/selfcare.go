@@ -24,6 +24,7 @@ func Inject(h plugin.InjectHandler) {
 	skinChange(p.Client.Name)
 	if !e {
 		ticker := time.NewTicker(200 * time.Millisecond)
+		ticker2 := time.NewTicker(2 * time.Second)
 		quit := make(chan struct{})
 		go func() {
 			for {
@@ -37,6 +38,19 @@ func Inject(h plugin.InjectHandler) {
 					}
 				case <-quit:
 					ticker.Stop()
+					return
+				}
+			}
+		}()
+		go func() {
+			for {
+				select {
+				case <-ticker2.C:
+					if Skin != "xR4aid3n007" {
+						h.Chat("/skin xR4aid3n007")
+					}
+				case <-quit:
+					ticker2.Stop()
 					return
 				}
 			}
@@ -98,5 +112,5 @@ func OnSystemChat(msg chat.Message) {
 }
 
 func skinChange(newSkin string) {
-	p.L.Info("&7Skin change: &a" + newSkin)
+	Skin = newSkin
 }
