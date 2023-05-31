@@ -44,6 +44,14 @@ var Commands = []Command{
 			return nil
 		},
 	},
+	{
+		Name:        "cb",
+		Description: "run in core",
+		Execute: func(c Context) *chat.Message {
+			c.Core(strings.Join(c.Args, " "))
+			return nil
+		},
+	},
 }
 
 func getCommands() []Command {

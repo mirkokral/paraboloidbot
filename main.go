@@ -136,7 +136,7 @@ func main() {
 	msgHandler = msg.New(client, player, pl, handler)
 
 	queueChatHandler()
-	err := client.JoinServer("kaboom.pw:25565")
+	err := client.JoinServer("kaboom.pw")
 	println(err)
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
@@ -319,7 +319,7 @@ func disconnect(reason chat.Message) error {
 	disconnectedAtleastOnce = true
 	fmt.Println("Disconnected: " + reason.String())
 	time.Sleep(5 * time.Second)
-	err := client.JoinServer("kaboom.pw:25565")
+	err := client.JoinServer("kaboom.pw")
 	println(err)
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
