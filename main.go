@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"mirko/plugin"
 	"mirko/plugin/selfcare"
 	"mirko/utils"
+
 	"strings"
 	"time"
 
@@ -21,6 +23,7 @@ import (
 	"github.com/Tnze/go-mc/data/packetid"
 	"github.com/Tnze/go-mc/level"
 	pk "github.com/Tnze/go-mc/net/packet"
+	"github.com/Tnze/go-mc/yggdrasil/user"
 )
 
 var client = bot.NewClient()
@@ -72,6 +75,7 @@ func main() {
 
 	fmt.Println("parabloid v0.1")
 	client.Auth.Name = "pb-1"
+
 	player = basic.NewPlayer(client, basic.DefaultSettings, basic.EventsListener{
 		GameStart:  connect,
 		Disconnect: disconnect,
@@ -123,6 +127,72 @@ func main() {
 			Priority: 2387489027890,
 			F: func(p pk.Packet) error {
 				selfcare.OnPacket(p)
+				if p.ID == int32(packetid.ClientboundKeepAlive) {
+
+					r := bytes.NewReader(p.Data)
+
+					action := pk.NewFixedBitSet(6)
+					if _, err := action.ReadFrom(r); err != nil {
+						return err
+					}
+
+					var length pk.VarInt
+					if _, err := length.ReadFrom(r); err != nil {
+						return err
+					}
+
+					for i := 0; i < int(length); i++ {
+						var id pk.UUID
+						if _, err := id.ReadFrom(r); err != nil {
+							return err
+						}
+
+						// add player
+						if action.Get(0) {
+							var name pk.String
+							var properties []user.Property
+							if _, err := (pk.Tuple{&name, pk.Array(&properties)}).ReadFrom(r); err != nil {
+								return err
+							}
+						}
+						// initialize chat
+						if action.Get(1) {
+							var chatSession pk.Option[sign.Session, *sign.Session]
+							if _, err := chatSession.ReadFrom(r); err != nil {
+								return err
+							}
+						}
+						// update gamemode
+						if action.Get(2) {
+							var gamemode pk.VarInt
+							if _, err := gamemode.ReadFrom(r); err != nil {
+								return err
+							}
+						}
+						// update listed
+						if action.Get(3) {
+							var listed pk.Boolean
+							if _, err := listed.ReadFrom(r); err != nil {
+								return err
+							}
+						}
+						// update latency
+						if action.Get(4) {
+							var latency pk.VarInt
+							if _, err := latency.ReadFrom(r); err != nil {
+								return err
+							}
+						}
+						// display name
+						if action.Get(5) {
+							var displayName pk.Option[chat.Message, *chat.Message]
+							if _, err := displayName.ReadFrom(r); err != nil {
+								return err
+							}
+						}
+					}
+
+				}
 				return nil
 			},
 		},
@@ -136,12 +206,11 @@ func main() {
 	msgHandler = msg.New(client, player, pl, handler)
 
 	queueChatHandler()
-	err := client.JoinServer("kaboom.pw")
-	println(err)
+	err := client.JoinServer("chayapak.chipmunk.land")
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
-	selfcare.Start()
+	disconnect(chat.Text("Disconnected"))
 }
 
 var handler = msg.EventsHandler{
@@ -319,10 +388,10 @@ func disconnect(reason chat.Message) error {
 	disconnectedAtleastOnce = true
 	fmt.Println("Disconnected: " + reason.String())
 	time.Sleep(5 * time.Second)
-	err := client.JoinServer("kaboom.pw")
-	println(err)
+	err := client.JoinServer("chayapak.chipmunk.land")
 	if err = client.HandleGame(); err == nil {
 		panic("HandleGame never return nil")
 	}
+	disconnect(chat.Text("Disconnected"))
 	return nil
 }
